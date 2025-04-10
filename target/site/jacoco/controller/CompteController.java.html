@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CompteController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">CompteController.java</span></div><h1>CompteController.java</h1><pre class="source lang-java linenums">package controller;
+
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.List;
+
+import dao.CompteDAO;
+import dao.TransactionDAO;
+import entite.Compte;
+import entite.Transaction;
+
+public class CompteController {
+
+    private CompteDAO compteDAO;
+    private TransactionDAO transactionDAO;
+
+    // Constructor initializes the DAOs
+<span class="nc" id="L18">    public CompteController() {</span>
+<span class="nc" id="L19">        this.compteDAO = new CompteDAO();</span>
+<span class="nc" id="L20">        this.transactionDAO = new TransactionDAO();</span>
+<span class="nc" id="L21">    }</span>
+<span class="fc" id="L22">    public CompteController(CompteDAO compteDAO, TransactionDAO transactionDAO) {</span>
+<span class="fc" id="L23">        this.compteDAO = compteDAO;</span>
+<span class="fc" id="L24">        this.transactionDAO = transactionDAO;</span>
+<span class="fc" id="L25">    }</span>
+    // Method to create a new account
+    public boolean createCompte(Compte compte) {
+        try {
+<span class="fc" id="L29">            return compteDAO.createCompte(compte);</span>
+<span class="fc" id="L30">        } catch (SQLException e) {</span>
+<span class="fc" id="L31">            e.printStackTrace();</span>
+<span class="fc" id="L32">            return false;</span>
+        }
+    }
+
+    // Method to retrieve an account by its client id
+    public Compte getCompte(int clientId) {
+        try {
+<span class="nc" id="L39">            System.out.println(&quot;Compte :&quot;+compteDAO.getCompte(clientId));</span>
+<span class="nc" id="L40">            return compteDAO.getCompte(clientId);</span>
+<span class="nc" id="L41">        } catch (SQLException e) {</span>
+<span class="nc" id="L42">            e.printStackTrace();</span>
+<span class="nc" id="L43">            return null;</span>
+        }
+    }
+    public Compte getCompte(String numCompte) {
+        try {
+<span class="fc" id="L48">            System.out.println(&quot;Compte :&quot;+compteDAO.getCompte(numCompte));</span>
+<span class="fc" id="L49">            return compteDAO.getCompte(numCompte);</span>
+<span class="nc" id="L50">        } catch (SQLException e) {</span>
+<span class="nc" id="L51">            e.printStackTrace();</span>
+<span class="nc" id="L52">            return null;</span>
+        }
+    }
+    public List&lt;Compte&gt; getAllComptes() {
+        try {
+<span class="fc" id="L57">            return compteDAO.getComptes();   </span>
+<span class="nc" id="L58">        } catch (SQLException e) {</span>
+<span class="nc" id="L59">            e.printStackTrace();</span>
+<span class="nc" id="L60">            return null;</span>
+        }
+    }
+    public List&lt;Compte&gt; getAllComptesByName(String nom) {
+        try {
+<span class="nc" id="L65">            return compteDAO.getComptes(nom);   </span>
+<span class="nc" id="L66">        } catch (SQLException e) {</span>
+<span class="nc" id="L67">            e.printStackTrace();</span>
+<span class="nc" id="L68">            return null;</span>
+        }
+    }
+
+    // Method to update the balance of an account
+    public boolean updateSolde(String numCompte, BigDecimal newSolde) {
+        try {
+<span class="fc" id="L75">            return compteDAO.updateSolde(numCompte, newSolde);</span>
+<span class="nc" id="L76">        } catch (SQLException e) {</span>
+<span class="nc" id="L77">            e.printStackTrace();</span>
+<span class="nc" id="L78">            return false;</span>
+        }
+    }
+
+    // Method to list all transactions of a specific account
+    public List&lt;Transaction&gt; getTransactionsByAccount(String numCompte) {
+        try {
+<span class="nc" id="L85">            return transactionDAO.getTransactions(numCompte);</span>
+<span class="nc" id="L86">        } catch (SQLException e) {</span>
+<span class="nc" id="L87">            e.printStackTrace();</span>
+<span class="nc" id="L88">            return null;</span>
+        }
+    }
+
+    // Method to deposit money into an account
+    public boolean deposit(String numCompte, BigDecimal montant) {
+        try {
+<span class="fc" id="L95">            Compte compte = compteDAO.getCompte(numCompte);</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            if (compte != null) {</span>
+<span class="fc" id="L97">                BigDecimal currentSolde = compte.getSolde();</span>
+<span class="fc" id="L98">                BigDecimal newSolde = currentSolde.add(montant);</span>
+<span class="fc" id="L99">                boolean isUpdated = updateSolde(numCompte, newSolde);</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">                if (isUpdated) {</span>
+                    // Create a new transaction for the deposit
+<span class="fc" id="L102">                    Transaction transaction = new Transaction(&quot;Deposit&quot;, montant, new java.util.Date(), numCompte);</span>
+<span class="fc" id="L103">                    transactionDAO.createTransaction(transaction);</span>
+<span class="fc" id="L104">                    return true;</span>
+                }
+            }
+<span class="nc" id="L107">        } catch (SQLException e) {</span>
+<span class="nc" id="L108">            e.printStackTrace();</span>
+<span class="nc" id="L109">        }</span>
+<span class="nc" id="L110">        return false;</span>
+    }
+
+    // Method to withdraw money from an account
+    public boolean withdraw(String numCompte, BigDecimal montant) {
+        try {
+<span class="fc" id="L116">            Compte compte = compteDAO.getCompte(numCompte);</span>
+<span class="pc bpc" id="L117" title="1 of 4 branches missed.">            if (compte != null &amp;&amp; compte.getSolde().compareTo(montant) &gt;= 0) {</span>
+<span class="fc" id="L118">                BigDecimal currentSolde = compte.getSolde();</span>
+<span class="fc" id="L119">                BigDecimal newSolde = currentSolde.subtract(montant);</span>
+<span class="fc" id="L120">                boolean isUpdated = updateSolde(numCompte, newSolde);</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">                if (isUpdated) {</span>
+                    // Create a new transaction for the withdrawal
+<span class="fc" id="L123">                    Transaction transaction = new Transaction(&quot;Withdrawal&quot;, montant, new java.util.Date(), numCompte);</span>
+<span class="fc" id="L124">                    transactionDAO.createTransaction(transaction);</span>
+<span class="fc" id="L125">                    return true;</span>
+                }
+            }
+<span class="nc" id="L128">        } catch (SQLException e) {</span>
+<span class="nc" id="L129">            e.printStackTrace();</span>
+<span class="fc" id="L130">        }</span>
+<span class="fc" id="L131">        return false;</span>
+    }
+
+    // Method to get account balance
+    public BigDecimal getSolde(String numCompte) {
+        try {
+<span class="nc" id="L137">            Compte compte = compteDAO.getCompte(numCompte);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            return compte != null ? compte.getSolde() : BigDecimal.ZERO;</span>
+<span class="nc" id="L139">        } catch (SQLException e) {</span>
+<span class="nc" id="L140">            e.printStackTrace();</span>
+        }
+<span class="nc" id="L142">        return BigDecimal.ZERO;</span>
+    }
+    // methode to execute the transfer
+    public boolean effectuerVirement(String senderNum, String receiverNum, BigDecimal montant) {
+        try {
+            // Input validation
+<span class="pc bpc" id="L148" title="3 of 6 branches missed.">            if (senderNum == null || receiverNum == null || montant == null) {</span>
+<span class="nc" id="L149">                System.out.println(&quot;Invalid parameters: null values not allowed&quot;);</span>
+<span class="nc" id="L150">                return false;</span>
+            }
+
+            // Get both accounts first to verify they exist
+<span class="fc" id="L154">            Compte sender = compteDAO.getCompte(senderNum);</span>
+<span class="fc" id="L155">            Compte receiver = compteDAO.getCompte(receiverNum);</span>
+
+<span class="fc bfc" id="L157" title="All 2 branches covered.">            if (sender == null) {</span>
+<span class="fc" id="L158">                System.out.println(&quot;Sender account &quot; + senderNum + &quot; does not exist.&quot;);</span>
+<span class="fc" id="L159">                return false;</span>
+            }
+
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            if (receiver == null) {</span>
+<span class="fc" id="L163">                System.out.println(&quot;Receiver account &quot; + receiverNum + &quot; does not exist.&quot;);</span>
+<span class="fc" id="L164">                return false;</span>
+            }
+
+            // Check sufficient balance
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">            if (sender.getSolde().compareTo(montant) &lt; 0) {</span>
+<span class="nc" id="L169">                System.out.println(&quot;Insufficient balance in sender's account.&quot;);</span>
+<span class="nc" id="L170">                return false;</span>
+            }
+
+            // Perform transfer
+<span class="fc" id="L174">            BigDecimal newSenderSolde = sender.getSolde().subtract(montant);</span>
+<span class="fc" id="L175">            BigDecimal newReceiverSolde = receiver.getSolde().add(montant);</span>
+
+<span class="fc" id="L177">            boolean senderUpdated = compteDAO.updateSolde(senderNum, newSenderSolde);</span>
+<span class="fc" id="L178">            boolean receiverUpdated = compteDAO.updateSolde(receiverNum, newReceiverSolde);</span>
+
+<span class="pc bpc" id="L180" title="2 of 4 branches missed.">            if (senderUpdated &amp;&amp; receiverUpdated) {</span>
+<span class="fc" id="L181">                return true;</span>
+            }
+
+<span class="nc" id="L184">        } catch (SQLException e) {</span>
+<span class="nc" id="L185">            System.err.println(&quot;Database error during transfer: &quot; + e.getMessage());</span>
+<span class="nc" id="L186">            e.printStackTrace();</span>
+<span class="nc" id="L187">        }</span>
+<span class="nc" id="L188">        return false;</span>
+    }
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

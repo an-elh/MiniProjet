@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransactionDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">TransactionDAO.java</span></div><h1>TransactionDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import entite.Transaction;
+import java.sql.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TransactionDAO {
+
+    private Connection connection;
+
+    // Constructor to initialize the connection
+<span class="fc" id="L14">    public TransactionDAO() {</span>
+<span class="fc" id="L15">        this.connection = DbSingleton.getInstance().getConnection();</span>
+<span class="fc" id="L16">    }</span>
+
+    // Method to insert a new transaction into the database
+    public boolean createTransaction(Transaction transaction) throws SQLException {
+<span class="fc" id="L20">        String query = &quot;INSERT INTO Transaction (type, montant, dateTransaction, numCompte) VALUES (?, ?, ?, ?)&quot;;</span>
+<span class="fc" id="L21">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L22">            stmt.setString(1, transaction.getType());</span>
+<span class="fc" id="L23">            stmt.setBigDecimal(2, transaction.getMontant());</span>
+<span class="fc" id="L24">            stmt.setTimestamp(3, new Timestamp(transaction.getDateTransaction().getTime()));</span>
+<span class="fc" id="L25">            stmt.setString(4, transaction.getNumCompte());</span>
+
+<span class="fc" id="L27">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">            return rowsAffected &gt; 0;</span>
+<span class="fc" id="L29">        } catch (SQLException e) {</span>
+            // Rethrow the exception so the controller can handle it
+<span class="fc" id="L31">            throw new SQLException(&quot;Error inserting transaction&quot;, e);</span>
+        }
+    }
+
+    public List&lt;Transaction&gt; getTransactions(String numCompte) throws SQLException {
+<span class="fc" id="L36">        List&lt;Transaction&gt; transactions = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L37">        String query = &quot;SELECT * FROM Transaction WHERE numCompte = ? ORDER BY dateTransaction DESC&quot;;</span>
+
+<span class="fc" id="L39">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L40">            stmt.setString(1, numCompte);</span>
+<span class="fc" id="L41">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L44">                int transactionId = rs.getInt(&quot;transactionId&quot;);</span>
+<span class="fc" id="L45">                String type = rs.getString(&quot;type&quot;);</span>
+<span class="fc" id="L46">                BigDecimal montant = rs.getBigDecimal(&quot;montant&quot;);</span>
+<span class="fc" id="L47">                Timestamp dateTransaction = rs.getTimestamp(&quot;dateTransaction&quot;);</span>
+<span class="fc" id="L48">                String accountNum = rs.getString(&quot;numCompte&quot;);</span>
+
+                // Create Transaction object and add it to the list
+<span class="fc" id="L51">                Transaction transaction = new Transaction(type, montant, new Date(dateTransaction.getTime()), accountNum);</span>
+<span class="fc" id="L52">                transaction.setTransactionId(transactionId);</span>
+<span class="fc" id="L53">                transactions.add(transaction);</span>
+<span class="fc" id="L54">            }</span>
+<span class="fc" id="L55">            return transactions;</span>
+<span class="fc" id="L56">        } catch (SQLException e) {</span>
+            // Rethrow the exception so the controller can handle it
+<span class="fc" id="L58">            throw new SQLException(&quot;Error retrieving transactions for account &quot; + numCompte, e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

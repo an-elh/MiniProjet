@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthentificationDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">AuthentificationDAO.java</span></div><h1>AuthentificationDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import entite.Authentification;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class AuthentificationDAO {
+
+    private String nom;
+    private String motDePasse;
+
+<span class="fc" id="L14">    public AuthentificationDAO(String nom, String motDePasse) {</span>
+<span class="fc" id="L15">        this.nom = nom;</span>
+<span class="fc" id="L16">        this.motDePasse = motDePasse;</span>
+<span class="fc" id="L17">    }</span>
+
+<span class="fc" id="L19">    public AuthentificationDAO() {</span>
+<span class="fc" id="L20">    }</span>
+
+    // Create a new user
+    public boolean createUser(String nom, String motDePasse, int clientId) throws SQLException {
+<span class="fc" id="L24">        String query = &quot;INSERT INTO Authentification (nom, motDePasse, clientId) VALUES (?, ?, ?)&quot;;</span>
+<span class="fc" id="L25">        try (Connection conn = DbSingleton.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {</span>
+
+<span class="fc" id="L27">            stmt.setString(1, nom);</span>
+<span class="fc" id="L28">            stmt.setString(2, motDePasse);</span>
+<span class="fc" id="L29">            stmt.setInt(3, clientId);</span>
+
+<span class="fc" id="L31">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">            return rowsAffected &gt; 0;</span>
+<span class="fc" id="L33">        } catch (SQLException e) {</span>
+<span class="fc" id="L34">            throw new SQLException(&quot;Error creating user: &quot; + nom, e);</span>
+        }
+    }
+
+    // Delete a user by username (nom)
+    
+    
+
+    // Throw SQLException for error handling by the controller
+    public String getPasswordByUsername(String nom) throws SQLException {
+<span class="fc" id="L44">        String query = &quot;SELECT motDePasse FROM Authentification WHERE nom = ?&quot;;</span>
+<span class="fc" id="L45">        try (Connection conn = DbSingleton.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {</span>
+
+<span class="fc" id="L47">            stmt.setString(1, nom);</span>
+<span class="fc" id="L48">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L51">                return rs.getString(&quot;motDePasse&quot;);</span>
+            }
+<span class="pc bpc" id="L53" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="fc" id="L54">            throw new SQLException(&quot;Error fetching password for user: &quot; + nom, e);</span>
+<span class="fc" id="L55">        }</span>
+<span class="fc" id="L56">        return null;</span>
+    }
+
+    // Throw SQLException for error handling by the controller
+    public boolean doesUsernameExist(String nom) throws SQLException {
+<span class="fc" id="L61">        String query = &quot;SELECT 1 FROM Authentification WHERE nom = ?&quot;;</span>
+<span class="fc" id="L62">        try (Connection conn = DbSingleton.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {</span>
+
+<span class="fc" id="L64">            stmt.setString(1, nom);</span>
+<span class="fc" id="L65">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc" id="L67">            return rs.next(); // If a result is returned, the username exists</span>
+<span class="fc" id="L68">        } catch (SQLException e) {</span>
+<span class="fc" id="L69">            throw new SQLException(&quot;Error checking if username exists: &quot; + nom, e);</span>
+        }
+    }
+
+    // Throw SQLException for error handling by the controller
+    public String[] seConnecter(String nom, String motDePasse) throws SQLException {
+<span class="fc" id="L75">        String sql = &quot;SELECT motDePasse, clientId, role FROM Authentification WHERE nom = ?&quot;;</span>
+
+<span class="fc" id="L77">        try (Connection con = DbSingleton.getInstance().getConnection(); PreparedStatement stmt = con.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L79">            stmt.setString(1, nom);</span>
+<span class="fc" id="L80">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L82" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L83">                String storedPassword = rs.getString(&quot;motDePasse&quot;);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">                if (storedPassword.equals(motDePasse)) {</span>
+<span class="fc" id="L85">                    String[] result = new String[2];</span>
+<span class="fc" id="L86">                    result[0] = String.valueOf(rs.getInt(&quot;clientId&quot;));</span>
+<span class="fc" id="L87">                    result[1] = rs.getString(&quot;role&quot;);</span>
+<span class="fc" id="L88">                    return result;</span>
+                }
+            }
+
+<span class="pc bpc" id="L92" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="fc" id="L93">            throw new SQLException(&quot;Error during login for user: &quot; + nom, e);</span>
+<span class="fc" id="L94">        }</span>
+
+<span class="fc" id="L96">        return null; // return null on failure</span>
+    }
+
+    public String getRole(String nom) throws SQLException {
+<span class="fc" id="L100">        String query = &quot;SELECT role FROM Authentification WHERE nom = ?&quot;;</span>
+<span class="fc" id="L101">        try (Connection conn = DbSingleton.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {</span>
+
+<span class="fc" id="L103">            stmt.setString(1, nom);</span>
+<span class="fc" id="L104">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L107">                return rs.getString(&quot;role&quot;);</span>
+            }
+<span class="fc" id="L109">            return &quot;user&quot;;</span>
+
+<span class="pc bpc" id="L111" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="fc" id="L112">            throw new SQLException(&quot;Error fetching role for user: &quot; + nom, e);</span>
+        }
+    }
+
+    public Authentification getAuthentificationById(int clientId) throws SQLException {
+<span class="fc" id="L117">        String query = &quot;SELECT * FROM Authentification WHERE clientId = ?&quot;;</span>
+<span class="fc" id="L118">        try (Connection con = DbSingleton.getInstance().getConnection(); PreparedStatement stmt = con.prepareStatement(query)) {</span>
+
+<span class="fc" id="L120">            stmt.setInt(1, clientId);</span>
+<span class="fc" id="L121">            ResultSet rs = stmt.executeQuery();</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L123">                String user=rs.getString(&quot;nom&quot;);</span>
+<span class="fc" id="L124">                String mdp = rs.getString(&quot;motDePasse&quot;);</span>
+<span class="fc" id="L125">                String role = rs.getString(&quot;role&quot;);</span>
+<span class="fc" id="L126">                return new Authentification(user,mdp,role);</span>
+            }
+<span class="pc bpc" id="L128" title="2 of 4 branches missed.">        }catch (SQLException e) {</span>
+<span class="fc" id="L129">            throw new SQLException(e);</span>
+<span class="fc" id="L130">        }</span>
+<span class="fc" id="L131">        return null;</span>
+    }
+
+    public String getNom() {
+<span class="fc" id="L135">        return nom;</span>
+    }
+
+    public void setNom(String nom) {
+<span class="fc" id="L139">        this.nom = nom;</span>
+<span class="fc" id="L140">    }</span>
+
+    public void setMotDePasse(String motDePasse) {
+<span class="fc" id="L143">        this.motDePasse = motDePasse;</span>
+<span class="fc" id="L144">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

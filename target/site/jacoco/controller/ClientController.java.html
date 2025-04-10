@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">ClientController.java</span></div><h1>ClientController.java</h1><pre class="source lang-java linenums">package controller;
+
+import dao.AuthentificationDAO;
+import dao.ClientDAO;
+import dao.CompteDAO;
+import entite.Authentification;
+import entite.Client;
+import entite.Compte;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.SQLException;
+
+public class ClientController {
+
+    private final ClientDAO clientDAO;
+    private final CompteDAO compteDAO;
+    private final AuthentificationDAO authDAO;
+
+<span class="nc" id="L21">    public ClientController() {</span>
+<span class="nc" id="L22">        this.clientDAO = new ClientDAO();</span>
+<span class="nc" id="L23">        this.compteDAO = new CompteDAO();</span>
+<span class="nc" id="L24">        this.authDAO = new AuthentificationDAO();</span>
+<span class="nc" id="L25">    }</span>
+<span class="fc" id="L26">    public ClientController(ClientDAO clientDAO, CompteDAO compteDAO, AuthentificationDAO authDAO) {</span>
+<span class="fc" id="L27">        this.clientDAO = clientDAO;</span>
+<span class="fc" id="L28">        this.compteDAO = compteDAO;</span>
+<span class="fc" id="L29">        this.authDAO = authDAO;</span>
+<span class="fc" id="L30">    }</span>
+    /**
+     * Creates a new client, associated bank account, and authentication user.
+     */
+    public boolean registerNewClient(String nom, String prenom, String email, String tel, String numComp, String statut,
+            String username, String password) {
+        // Input validation
+<span class="pc bpc" id="L37" title="4 of 8 branches missed.">        if (isEmpty(nom) || isEmpty(prenom) || isEmpty(email) || isEmpty(tel)</span>
+<span class="pc bpc" id="L38" title="2 of 4 branches missed.">                || isEmpty(username) || isEmpty(password)) {</span>
+<span class="nc" id="L39">            return false;</span>
+        }
+
+        try {
+            // Create Client object
+<span class="fc" id="L44">            Client client = new Client();</span>
+<span class="fc" id="L45">            client.setNom(nom);</span>
+<span class="fc" id="L46">            client.setPrenom(prenom);</span>
+<span class="fc" id="L47">            client.setEmail(email);</span>
+<span class="fc" id="L48">            client.setTel(tel);</span>
+
+            // Create Account object
+<span class="fc" id="L51">            Compte compte = new Compte();</span>
+<span class="fc" id="L52">            compte.setNumCompte(numComp);</span>
+<span class="fc" id="L53">            compte.setSolde(new BigDecimal(&quot;0.00&quot;)); // Start with zero balance</span>
+<span class="fc" id="L54">            compte.setDateCreation(new java.sql.Date(System.currentTimeMillis()));</span>
+<span class="fc" id="L55">            compte.setStatut(statut);</span>
+
+            // Call DAO method to create client, account, and user
+<span class="fc" id="L58">            boolean success = clientDAO.createClientWithAccountAndUser(client, compte, username, password);</span>
+
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if (success) {</span>
+<span class="fc" id="L61">                System.out.println(&quot;Client registered successfully with account number: &quot; + compte.getNumCompte());</span>
+            } else {
+<span class="nc" id="L63">                System.err.println(&quot;Failed to register client&quot;);</span>
+            }
+
+<span class="fc" id="L66">            return success;</span>
+
+<span class="nc" id="L68">        } catch (Exception e) {</span>
+<span class="nc" id="L69">            System.err.println(&quot;Error in client registration: &quot; + e.getMessage());</span>
+<span class="nc" id="L70">            e.printStackTrace();</span>
+<span class="nc" id="L71">            return false;</span>
+        }
+    }
+
+    public boolean updateUserAndAccountDetails(int clientId, String nom, String prenom, String email, String tel,
+            String numCompte, String statut, String username, String newPassword) {
+        // Input validation
+<span class="pc bpc" id="L78" title="4 of 8 branches missed.">        if (isEmpty(nom) || isEmpty(prenom) || isEmpty(email) || isEmpty(tel)</span>
+<span class="pc bpc" id="L79" title="4 of 8 branches missed.">                || isEmpty(username) || isEmpty(newPassword) || isEmpty(numCompte) || isEmpty(statut)) {</span>
+<span class="nc" id="L80">            return false; // Input validation failed</span>
+        }
+
+        try {
+            // Fetch the existing client and account data (if necessary)
+<span class="fc" id="L85">            Client client = clientDAO.getClientById(clientId);</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">            if (client == null) {</span>
+<span class="fc" id="L87">                System.err.println(&quot;Client not found with clientId: &quot; + clientId);</span>
+<span class="fc" id="L88">                return false; // Client not found</span>
+            }
+
+            // Update Client object
+<span class="fc" id="L92">            client.setNom(nom);</span>
+<span class="fc" id="L93">            client.setPrenom(prenom);</span>
+<span class="fc" id="L94">            client.setEmail(email);</span>
+<span class="fc" id="L95">            client.setTel(tel);</span>
+
+            // Create and Update Compte object
+<span class="fc" id="L98">            Compte compte = new Compte();</span>
+<span class="fc" id="L99">            compte.setClientId(clientId);</span>
+<span class="fc" id="L100">            compte.setNumCompte(numCompte);</span>
+<span class="fc" id="L101">            compte.setStatut(statut);</span>
+<span class="fc" id="L102">            compte.setSolde(new BigDecimal(&quot;0.00&quot;));  // Set the appropriate balance if necessary</span>
+<span class="fc" id="L103">            compte.setDateCreation(new java.sql.Date(System.currentTimeMillis())); // Update creation date if needed</span>
+
+            // Call DAO method to update client, account, and authentification
+<span class="fc" id="L106">            boolean success = clientDAO.updateUserAndAccount(client, compte, username, newPassword);</span>
+
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">            if (success) {</span>
+<span class="fc" id="L109">                System.out.println(&quot;Client, account, and authentication details updated successfully.&quot;);</span>
+            } else {
+<span class="nc" id="L111">                System.err.println(&quot;Failed to update client, account, or authentication details.&quot;);</span>
+            }
+
+<span class="fc" id="L114">            return success;</span>
+<span class="nc" id="L115">        } catch (SQLException e) {</span>
+<span class="nc" id="L116">            System.err.println(&quot;Error while updating user and account details: &quot; + e.getMessage());</span>
+<span class="nc" id="L117">            e.printStackTrace();</span>
+<span class="nc" id="L118">            return false; // Return false in case of an error</span>
+        }
+    }
+
+    public void deleteClientAndAccount(int clientId) {
+        try {
+            // Call the DAO method to delete the user and associated data
+<span class="fc" id="L125">            boolean success = clientDAO.deleteUserAndAccount(clientId);</span>
+
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">            if (success) {</span>
+<span class="fc" id="L128">                System.out.println(&quot;Client and associated data deleted successfully.&quot;);</span>
+            } else {
+<span class="nc" id="L130">                System.out.println(&quot;Failed to delete client and associated data.&quot;);</span>
+            }
+
+<span class="fc" id="L133">        } catch (SQLException e) {</span>
+<span class="fc" id="L134">            System.err.println(&quot;Error occurred while deleting client and associated data: &quot; + e.getMessage());</span>
+<span class="fc" id="L135">            e.printStackTrace();</span>
+<span class="fc" id="L136">        }</span>
+<span class="fc" id="L137">    }</span>
+
+    public String generateAccountNumber() {
+        // Generate a unique account number with prefix &quot;ACC&quot; followed by timestamp
+<span class="fc" id="L141">        String timestamp = String.valueOf(System.currentTimeMillis()).substring(5);</span>
+<span class="fc" id="L142">        return &quot;ACC&quot; + timestamp;</span>
+    }
+
+    public boolean isEmpty(String str) {
+<span class="pc bpc" id="L146" title="2 of 4 branches missed.">        return str == null || str.trim().isEmpty();</span>
+    }
+
+    public Client getClient(int clientId) {
+        try {
+<span class="fc" id="L151">            return clientDAO.getClientById(clientId);</span>
+<span class="nc" id="L152">        } catch (Exception e) {</span>
+<span class="nc" id="L153">            e.printStackTrace();</span>
+<span class="nc" id="L154">            return null;</span>
+        }
+    }
+
+    public Client getClientWithAccountAndAuth(int clientId) {
+        try {
+<span class="fc" id="L160">            return clientDAO.getClientWithAccountAndAuth(clientId);</span>
+<span class="nc" id="L161">        } catch (Exception e) {</span>
+<span class="nc" id="L162">            e.printStackTrace();</span>
+<span class="nc" id="L163">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

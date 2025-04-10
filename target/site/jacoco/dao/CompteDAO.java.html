@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CompteDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">CompteDAO.java</span></div><h1>CompteDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import entite.Client;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import entite.Compte;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CompteDAO {
+
+    private Connection connection;
+
+    // Constructor that gets the connection from the DbSingleton
+<span class="fc" id="L21">    public CompteDAO() {</span>
+<span class="fc" id="L22">        this.connection = DbSingleton.getInstance().getConnection();</span>
+<span class="fc" id="L23">    }</span>
+
+    // Method to insert a new Compte into the database
+    public boolean createCompte(Compte compte) throws SQLException {
+<span class="fc" id="L27">        String query = &quot;INSERT INTO Compte (numCompte, solde, dateCreation, statut, clientId) VALUES (?, ?, ?, ?, ?)&quot;;</span>
+<span class="fc" id="L28">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L29">            stmt.setString(1, compte.getNumCompte());</span>
+<span class="fc" id="L30">            stmt.setBigDecimal(2, compte.getSolde());</span>
+<span class="fc" id="L31">            stmt.setDate(3, compte.getDateCreation());</span>
+<span class="fc" id="L32">            stmt.setString(4, compte.getStatut());</span>
+<span class="fc" id="L33">            stmt.setInt(5, compte.getClientId());</span>
+
+<span class="fc" id="L35">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">            return rowsAffected &gt; 0;</span>
+        }
+    }
+    // Delete a Compte by numCompte
+
+    public boolean deleteCompte(String numCompte) throws SQLException {
+<span class="fc" id="L42">        String query = &quot;DELETE FROM Compte WHERE numCompte = ?&quot;;</span>
+<span class="fc" id="L43">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L44">            stmt.setString(1, numCompte);</span>
+<span class="fc" id="L45">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">            return rowsAffected &gt; 0;</span>
+        }
+    }
+
+    public boolean updateCompte(Compte compte) throws SQLException {
+<span class="fc" id="L51">        String sql = &quot;UPDATE Compte SET solde = ?, dateCreation = ?, statut = ? WHERE clientId = ?&quot;;</span>
+<span class="fc" id="L52">        try (PreparedStatement stmt = connection.prepareStatement(sql)) {</span>
+<span class="fc" id="L53">            stmt.setBigDecimal(1, compte.getSolde());</span>
+<span class="fc" id="L54">            stmt.setDate(2, compte.getDateCreation());</span>
+<span class="fc" id="L55">            stmt.setString(3, compte.getStatut());</span>
+<span class="fc" id="L56">            stmt.setInt(4, compte.getClientId());</span>
+
+<span class="fc" id="L58">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            return rowsAffected &gt; 0;</span>
+        }
+    }
+
+    // Delete a Compte by clientId
+    public boolean deleteCompteByClientId(int clientId) throws SQLException {
+<span class="fc" id="L65">        String query = &quot;DELETE FROM Compte WHERE clientId = ?&quot;;</span>
+<span class="fc" id="L66">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L67">            stmt.setInt(1, clientId);</span>
+<span class="fc" id="L68">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            return rowsAffected &gt; 0;</span>
+        }
+    }
+
+    // Method to retrieve a Compte by account number (numCompte)
+    public Compte getCompte(String numCompte) throws SQLException {
+<span class="fc" id="L75">        String query = &quot;SELECT * FROM Compte WHERE numCompte = ?&quot;;</span>
+<span class="fc" id="L76">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L77">            stmt.setString(1, numCompte);</span>
+<span class="fc" id="L78">            ResultSet rs = stmt.executeQuery();</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="fc" id="L80">                String accountNum = rs.getString(&quot;numCompte&quot;);</span>
+<span class="fc" id="L81">                BigDecimal solde = rs.getBigDecimal(&quot;solde&quot;);</span>
+<span class="fc" id="L82">                Date dateCreation = rs.getDate(&quot;dateCreation&quot;);</span>
+<span class="fc" id="L83">                String statut = rs.getString(&quot;statut&quot;);</span>
+<span class="fc" id="L84">                int clientId = rs.getInt(&quot;clientId&quot;);</span>
+
+<span class="fc" id="L86">                return new Compte(accountNum, solde, dateCreation, statut, clientId);</span>
+            }
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        }</span>
+<span class="nc" id="L89">        return null;</span>
+    }
+
+    // Method to retrieve a Compte by Client ID (clientId)
+    public Compte getCompte(int clientId) throws SQLException {
+<span class="nc" id="L94">        String query = &quot;SELECT * FROM Compte WHERE clientId = ?&quot;;</span>
+<span class="nc" id="L95">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="nc" id="L96">            stmt.setInt(1, clientId);</span>
+<span class="nc" id="L97">            try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">                if (rs.next()) {</span>
+<span class="nc" id="L99">                    String accountNum = rs.getString(&quot;numCompte&quot;);</span>
+<span class="nc" id="L100">                    BigDecimal solde = rs.getBigDecimal(&quot;solde&quot;);</span>
+<span class="nc" id="L101">                    Date dateCreation = rs.getDate(&quot;dateCreation&quot;);</span>
+<span class="nc" id="L102">                    String statut = rs.getString(&quot;statut&quot;);</span>
+<span class="nc" id="L103">                    int clientID = rs.getInt(&quot;clientId&quot;);</span>
+
+                    // Create and return a Compte object
+<span class="nc" id="L106">                    return new Compte(accountNum, solde, dateCreation, statut, clientID);</span>
+                }
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            }</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        }</span>
+<span class="nc" id="L110">        return null; // Return null if no account found for the clientId</span>
+    }
+
+    public List&lt;Compte&gt; getComptes() throws SQLException {
+<span class="fc" id="L114">        String query = &quot;&quot;&quot;</span>
+        SELECT c.numCompte, c.solde, c.dateCreation, c.statut, c.clientId,
+               cl.nom, cl.prenom, cl.email, cl.tel
+        FROM Compte c
+        INNER JOIN Client cl ON c.clientId = cl.clientId&quot;&quot;&quot;;
+
+<span class="fc" id="L120">        List&lt;Compte&gt; comptes = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L122">        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(query)) {</span>
+
+<span class="fc bfc" id="L124" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L125">                String accountNum = rs.getString(&quot;numCompte&quot;);</span>
+<span class="fc" id="L126">                BigDecimal solde = rs.getBigDecimal(&quot;solde&quot;);</span>
+<span class="fc" id="L127">                Date dateCreation = rs.getDate(&quot;dateCreation&quot;);</span>
+<span class="fc" id="L128">                String statut = rs.getString(&quot;statut&quot;);</span>
+<span class="fc" id="L129">                int clientID = rs.getInt(&quot;clientId&quot;);</span>
+
+                // Create Client
+<span class="fc" id="L132">                Client client = new Client();</span>
+<span class="fc" id="L133">                client.setClientId(clientID);</span>
+<span class="fc" id="L134">                client.setNom(rs.getString(&quot;nom&quot;));</span>
+<span class="fc" id="L135">                client.setPrenom(rs.getString(&quot;prenom&quot;));</span>
+<span class="fc" id="L136">                client.setEmail(rs.getString(&quot;email&quot;));</span>
+<span class="fc" id="L137">                client.setTel(rs.getString(&quot;tel&quot;));</span>
+
+                // Create Compte and set client
+<span class="fc" id="L140">                Compte c = new Compte(accountNum, solde, dateCreation, statut, clientID);</span>
+<span class="fc" id="L141">                c.setClient(client);</span>
+
+<span class="fc" id="L143">                comptes.add(c);</span>
+<span class="fc" id="L144">            }</span>
+        }
+
+<span class="fc" id="L147">        return comptes;</span>
+    }
+
+    public List&lt;Compte&gt; getComptes(String nom) throws SQLException {
+<span class="fc" id="L151">        String query = &quot;&quot;&quot;</span>
+        SELECT c.numCompte, c.solde, c.dateCreation, c.statut, c.clientId,
+               cl.nom, cl.prenom, cl.email, cl.tel
+        FROM Compte c
+        INNER JOIN Client cl ON c.clientId = cl.clientId
+        WHERE cl.nom LIKE ?
+    &quot;&quot;&quot;;
+
+<span class="fc" id="L159">        List&lt;Compte&gt; comptes = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L161">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L162">            stmt.setString(1, &quot;%&quot; + nom + &quot;%&quot;); // To match partial names</span>
+
+<span class="fc" id="L164">            try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">                while (rs.next()) {</span>
+<span class="fc" id="L166">                    String accountNum = rs.getString(&quot;numCompte&quot;);</span>
+<span class="fc" id="L167">                    BigDecimal solde = rs.getBigDecimal(&quot;solde&quot;);</span>
+<span class="fc" id="L168">                    Date dateCreation = rs.getDate(&quot;dateCreation&quot;);</span>
+<span class="fc" id="L169">                    String statut = rs.getString(&quot;statut&quot;);</span>
+<span class="fc" id="L170">                    int clientID = rs.getInt(&quot;clientId&quot;);</span>
+
+                    // Create Client
+<span class="fc" id="L173">                    Client client = new Client();</span>
+<span class="fc" id="L174">                    client.setClientId(clientID);</span>
+<span class="fc" id="L175">                    client.setNom(rs.getString(&quot;nom&quot;));</span>
+<span class="fc" id="L176">                    client.setPrenom(rs.getString(&quot;prenom&quot;));</span>
+<span class="fc" id="L177">                    client.setEmail(rs.getString(&quot;email&quot;));</span>
+<span class="fc" id="L178">                    client.setTel(rs.getString(&quot;tel&quot;));</span>
+
+                    // Create Compte and set client
+<span class="fc" id="L181">                    Compte c = new Compte(accountNum, solde, dateCreation, statut, clientID);</span>
+<span class="fc" id="L182">                    c.setClient(client);</span>
+
+<span class="fc" id="L184">                    comptes.add(c);</span>
+<span class="fc" id="L185">                }</span>
+            }
+        }
+
+<span class="fc" id="L189">        return comptes;</span>
+    }
+
+    // Method to update the account balance
+    public boolean updateSolde(String numCompte, BigDecimal solde) throws SQLException {
+<span class="nc" id="L194">        String query = &quot;UPDATE Compte SET solde = ? WHERE numCompte = ?&quot;;</span>
+<span class="nc" id="L195">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="nc" id="L196">            stmt.setBigDecimal(1, solde);</span>
+<span class="nc" id="L197">            stmt.setString(2, numCompte);</span>
+
+<span class="nc" id="L199">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            return rowsAffected &gt; 0;</span>
+        }
+    }
+
+    // Method to check if the account exists
+    public boolean compteExiste(String numCompte) throws SQLException {
+<span class="pc bpc" id="L206" title="2 of 4 branches missed.">        if (numCompte == null || numCompte.trim().isEmpty()) {</span>
+<span class="nc" id="L207">            return false;</span>
+        }
+
+<span class="fc" id="L210">        String query = &quot;SELECT COUNT(*) FROM Compte WHERE numCompte = ?&quot;;</span>
+<span class="fc" id="L211">        try (PreparedStatement stmt = connection.prepareStatement(query)) {</span>
+<span class="fc" id="L212">            stmt.setString(1, numCompte);</span>
+            // Execute query after setting parameters
+<span class="fc" id="L214">            try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L215" title="2 of 4 branches missed.">                return rs.next() &amp;&amp; rs.getInt(1) &gt; 0;</span>
+            }
+        }
+    }
+
+    // Method to transfer between accounts
+    public boolean updateSolde(String numCompte, BigDecimal montant, boolean isDebit) throws SQLException {
+<span class="fc bfc" id="L222" title="All 2 branches covered.">        String sql = isDebit</span>
+<span class="fc" id="L223">                ? &quot;UPDATE Compte SET solde = solde - ? WHERE numCompte = ? AND solde &gt;= ?&quot;</span>
+<span class="fc" id="L224">                : &quot;UPDATE Compte SET solde = solde + ? WHERE numCompte = ?&quot;;</span>
+
+<span class="fc" id="L226">        try (PreparedStatement stmt = connection.prepareStatement(sql)) {</span>
+            // Parameter binding
+<span class="fc" id="L228">            stmt.setBigDecimal(1, montant);</span>
+<span class="fc" id="L229">            stmt.setString(2, numCompte);</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">            if (isDebit) {</span>
+<span class="fc" id="L231">                stmt.setBigDecimal(3, montant);</span>
+            }
+<span class="fc bfc" id="L233" title="All 2 branches covered.">            return stmt.executeUpdate() &gt; 0; // No transaction management here</span>
+        }
+    }
+
+    public boolean transferSolde(String sourceCompte, String destCompte, BigDecimal montant) throws SQLException {
+        try {
+<span class="fc" id="L239">            connection.setAutoCommit(false); // 1. Start transaction</span>
+<span class="fc" id="L240">            boolean sourceUpdated = updateSolde(sourceCompte, montant, true);</span>
+<span class="fc bfc" id="L241" title="All 2 branches covered.">            if (!sourceUpdated) {</span>
+<span class="fc" id="L242">                connection.rollback();</span>
+<span class="fc" id="L243">                return false;</span>
+            }
+<span class="fc" id="L245">            boolean destUpdated = updateSolde(destCompte, montant, false);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">            if (!destUpdated) {</span>
+<span class="nc" id="L247">                connection.rollback();</span>
+<span class="nc" id="L248">                return false;</span>
+            }
+<span class="fc" id="L250">            connection.commit(); // 2. Commit transaction</span>
+<span class="fc" id="L251">            return true;</span>
+<span class="nc" id="L252">        } catch (SQLException e) {</span>
+<span class="nc" id="L253">            connection.rollback();</span>
+<span class="nc" id="L254">            throw e;</span>
+        } finally {
+<span class="fc" id="L256">            connection.setAutoCommit(true); // 3. Reset auto-commit</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

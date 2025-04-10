@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">ClientDAO.java</span></div><h1>ClientDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import entite.Authentification;
+import entite.Client;
+import entite.Compte;
+import java.sql.*;
+
+public class ClientDAO {
+
+    private Connection con;
+
+<span class="fc" id="L12">    public ClientDAO() {</span>
+<span class="fc" id="L13">        this.con = DbSingleton.getInstance().getConnection();</span>
+<span class="fc" id="L14">    }</span>
+
+    public boolean createClientWithAccountAndUser(Client client, Compte compte, String nom, String motDePasse) {
+<span class="fc" id="L17">        String clientSql = &quot;INSERT INTO Client (nom, prenom, email, tel) VALUES (?, ?, ?, ?)&quot;;</span>
+<span class="fc" id="L18">        String compteSql = &quot;INSERT INTO Compte (numCompte, solde, dateCreation, statut, clientId) VALUES (?, ?, ?, ?, ?)&quot;;</span>
+<span class="fc" id="L19">        String userSql = &quot;INSERT INTO Authentification (nom, motDePasse, clientId) VALUES (?, ?, ?)&quot;;</span>
+
+        try{
+            // Start transaction
+<span class="fc" id="L23">            con.setAutoCommit(false);</span>
+
+<span class="fc" id="L25">            try (PreparedStatement clientStmt = con.prepareStatement(clientSql, Statement.RETURN_GENERATED_KEYS); </span>
+<span class="fc" id="L26">                    PreparedStatement compteStmt = con.prepareStatement(compteSql); </span>
+<span class="fc" id="L27">                    PreparedStatement userStmt = con.prepareStatement(userSql)) {</span>
+
+                // Insert Client
+<span class="fc" id="L30">                clientStmt.setString(1, client.getNom());</span>
+<span class="fc" id="L31">                clientStmt.setString(2, client.getPrenom());</span>
+<span class="fc" id="L32">                clientStmt.setString(3, client.getEmail());</span>
+<span class="fc" id="L33">                clientStmt.setString(4, client.getTel());</span>
+<span class="fc" id="L34">                int clientRowsAffected = clientStmt.executeUpdate();</span>
+
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">                if (clientRowsAffected &gt; 0) {</span>
+<span class="fc" id="L37">                    try (ResultSet generatedKeys = clientStmt.getGeneratedKeys()) {</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">                        if (generatedKeys.next()) {</span>
+<span class="fc" id="L39">                            int clientId = generatedKeys.getInt(1);</span>
+<span class="fc" id="L40">                            client.setClientId(clientId);</span>
+<span class="fc" id="L41">                            compte.setClientId(clientId);</span>
+
+                            // Insert Compte
+<span class="fc" id="L44">                            compteStmt.setString(1, compte.getNumCompte());</span>
+<span class="fc" id="L45">                            compteStmt.setBigDecimal(2, compte.getSolde());</span>
+<span class="fc" id="L46">                            compteStmt.setDate(3, compte.getDateCreation());</span>
+<span class="fc" id="L47">                            compteStmt.setString(4, compte.getStatut());</span>
+<span class="fc" id="L48">                            compteStmt.setInt(5, clientId);</span>
+<span class="fc" id="L49">                            int compteRowsAffected = compteStmt.executeUpdate();</span>
+
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">                            if (compteRowsAffected &gt; 0) {</span>
+                                // Insert User (Authentication)
+<span class="fc" id="L53">                                userStmt.setString(1, nom);</span>
+<span class="fc" id="L54">                                userStmt.setString(2, motDePasse);</span>
+<span class="fc" id="L55">                                userStmt.setInt(3, clientId);</span>
+<span class="fc" id="L56">                                int userRowsAffected = userStmt.executeUpdate();</span>
+
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">                                if (userRowsAffected &gt; 0) {</span>
+<span class="fc" id="L59">                                    con.commit();</span>
+<span class="fc" id="L60">                                    return true;</span>
+                                } else {
+<span class="nc" id="L62">                                    con.rollback();</span>
+<span class="nc" id="L63">                                    System.err.println(&quot;Failed to create authentication record&quot;);</span>
+<span class="nc" id="L64">                                    return false;</span>
+                                }
+                            } else {
+<span class="nc" id="L67">                                con.rollback();</span>
+<span class="nc" id="L68">                                System.err.println(&quot;Failed to create account record&quot;);</span>
+<span class="nc" id="L69">                                return false;</span>
+                            }
+                        } else {
+<span class="nc" id="L72">                            con.rollback();</span>
+<span class="nc" id="L73">                            System.err.println(&quot;Failed to retrieve generated client ID&quot;);</span>
+<span class="nc" id="L74">                            return false;</span>
+                        }
+<span class="pc bpc" id="L76" title="5 of 6 branches missed.">                    }</span>
+                } else {
+<span class="nc" id="L78">                    con.rollback();</span>
+<span class="nc" id="L79">                    System.err.println(&quot;Failed to create client record&quot;);</span>
+<span class="nc" id="L80">                    return false;</span>
+                }
+<span class="pc bpc" id="L82" title="21 of 24 branches missed.">            } catch (SQLException e) {</span>
+<span class="fc" id="L83">                con.rollback();</span>
+<span class="fc" id="L84">                System.err.println(&quot;SQL error during client creation: &quot; + e.getMessage());</span>
+<span class="fc" id="L85">                e.printStackTrace();</span>
+<span class="fc" id="L86">                return false;</span>
+            } finally {
+<span class="fc" id="L88">                con.setAutoCommit(true);</span>
+            }
+<span class="nc" id="L90">        } catch (SQLException e) {</span>
+<span class="nc" id="L91">            System.err.println(&quot;Database connection error: &quot; + e.getMessage());</span>
+<span class="nc" id="L92">            e.printStackTrace();</span>
+<span class="nc" id="L93">            return false;</span>
+        }
+    }
+
+    public boolean updateClient(Client client) throws SQLException {
+<span class="nc" id="L98">        String sql = &quot;UPDATE Client SET nom = ?, prenom = ?, email = ?, tel = ? WHERE clientId = ?&quot;;</span>
+<span class="nc" id="L99">        try (PreparedStatement stmt = con.prepareStatement(sql)) {</span>
+
+<span class="nc" id="L101">            stmt.setString(1, client.getNom());</span>
+<span class="nc" id="L102">            stmt.setString(2, client.getPrenom());</span>
+<span class="nc" id="L103">            stmt.setString(3, client.getEmail());</span>
+<span class="nc" id="L104">            stmt.setString(4, client.getTel());</span>
+<span class="nc" id="L105">            stmt.setInt(5, client.getClientId());</span>
+
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            return stmt.executeUpdate() &gt; 0;</span>
+        }
+    }
+
+    public boolean deleteClient(int clientId) throws SQLException {
+<span class="nc" id="L112">        String sql = &quot;DELETE FROM Client WHERE clientId = ?&quot;;</span>
+<span class="nc" id="L113">        try (PreparedStatement stmt = con.prepareStatement(sql)) {</span>
+
+<span class="nc" id="L115">            stmt.setInt(1, clientId);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            return stmt.executeUpdate() &gt; 0;</span>
+        }
+    }
+
+    public boolean deleteUserAndAccount(int clientId) throws SQLException {
+<span class="fc" id="L121">        String deleteClientSql = &quot;DELETE FROM Client WHERE clientId = ?&quot;;</span>
+        // Start a transaction to delete from all tables
+
+<span class="fc" id="L124">        try (PreparedStatement clientStmt = con.prepareStatement(deleteClientSql);) {</span>
+
+            // Delete from Client table
+<span class="fc" id="L127">            clientStmt.setInt(1, clientId);</span>
+<span class="fc" id="L128">            int clientRowsAffected = clientStmt.executeUpdate();</span>
+
+            // Check if all deletions were successful
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">            if (clientRowsAffected &gt; 0) {</span>
+                // Commit the transaction if all deletions succeeded
+<span class="fc" id="L133">                con.commit();</span>
+<span class="fc" id="L134">                return true; // Successful deletion</span>
+            } else {
+                // Rollback the transaction if any deletion failed
+<span class="nc" id="L137">                con.rollback();</span>
+<span class="nc" id="L138">                return false; // Deletion failed</span>
+            }
+
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        } catch (SQLException e) {</span>
+            // Rollback if any exception occurs
+<span class="nc" id="L143">            con.rollback();</span>
+<span class="nc" id="L144">            throw new SQLException(&quot;Error deleting user and account data&quot;, e);</span>
+        } finally {
+            // Reset auto-commit to true after the transaction is completed
+<span class="fc" id="L147">            con.setAutoCommit(true);</span>
+        }
+    }
+
+    public Client getClientById(int clientId) {
+<span class="nc" id="L152">        String query = &quot;SELECT * FROM Client WHERE clientId = ?&quot;;</span>
+<span class="nc" id="L153">        try (PreparedStatement stmt = con.prepareStatement(query)) {</span>
+
+<span class="nc" id="L155">            stmt.setInt(1, clientId);</span>
+<span class="nc" id="L156">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (rs.next()) {</span>
+<span class="nc" id="L159">                Client client = new Client();</span>
+<span class="nc" id="L160">                client.setClientId(rs.getInt(&quot;clientId&quot;));</span>
+<span class="nc" id="L161">                client.setNom(rs.getString(&quot;nom&quot;));</span>
+<span class="nc" id="L162">                client.setPrenom(rs.getString(&quot;prenom&quot;));</span>
+<span class="nc" id="L163">                client.setEmail(rs.getString(&quot;email&quot;));</span>
+<span class="nc" id="L164">                client.setTel(rs.getString(&quot;tel&quot;));</span>
+<span class="nc" id="L165">                return client;</span>
+            }
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L168">            e.printStackTrace();</span>
+<span class="nc" id="L169">        }</span>
+<span class="nc" id="L170">        return null;</span>
+    }
+
+    public Client getClientWithAccountAndAuth(int clientId) throws SQLException {
+<span class="fc" id="L174">        String query = &quot;SELECT c.clientId, c.nom, c.prenom, c.email, c.tel, &quot;</span>
+                + &quot;a.nom AS authNom, a.motDePasse, a.role, &quot;
+                + &quot;co.numCompte, co.solde, co.dateCreation, co.statut &quot;
+                + &quot;FROM Client c &quot;
+                + &quot;INNER JOIN Authentification a ON c.clientId = a.clientId &quot;
+                + &quot;INNER JOIN Compte co ON c.clientId = co.clientId &quot;
+                + &quot;WHERE c.clientId = ?&quot;;
+
+<span class="fc" id="L182">        try (PreparedStatement stmt = con.prepareStatement(query)) {</span>
+
+<span class="fc" id="L184">            stmt.setInt(1, clientId);</span>
+<span class="fc" id="L185">            try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">                if (rs.next()) {</span>
+                    // Create Client object
+<span class="fc" id="L188">                    Client client = new Client();</span>
+<span class="fc" id="L189">                    client.setClientId(rs.getInt(&quot;clientId&quot;));</span>
+<span class="fc" id="L190">                    client.setNom(rs.getString(&quot;nom&quot;));</span>
+<span class="fc" id="L191">                    client.setPrenom(rs.getString(&quot;prenom&quot;));</span>
+<span class="fc" id="L192">                    client.setEmail(rs.getString(&quot;email&quot;));</span>
+<span class="fc" id="L193">                    client.setTel(rs.getString(&quot;tel&quot;));</span>
+
+                    // Create Authentification object
+<span class="fc" id="L196">                    Authentification auth = new Authentification(</span>
+<span class="fc" id="L197">                            rs.getString(&quot;authNom&quot;),</span>
+<span class="fc" id="L198">                            rs.getString(&quot;motDePasse&quot;),</span>
+<span class="fc" id="L199">                            rs.getString(&quot;role&quot;)</span>
+                    );
+<span class="fc" id="L201">                    client.setAuth(auth);</span>
+
+                    // Create Compte object
+<span class="fc" id="L204">                    Compte compte = new Compte(</span>
+<span class="fc" id="L205">                            rs.getString(&quot;numCompte&quot;),</span>
+<span class="fc" id="L206">                            rs.getBigDecimal(&quot;solde&quot;),</span>
+<span class="fc" id="L207">                            rs.getDate(&quot;dateCreation&quot;),</span>
+<span class="fc" id="L208">                            rs.getString(&quot;statut&quot;),</span>
+                            clientId
+                    );
+<span class="fc" id="L211">                    client.setCompte(compte);</span>
+
+<span class="fc" id="L213">                    return client;</span>
+                }
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">            }</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L217">            e.printStackTrace();</span>
+<span class="nc" id="L218">            throw new SQLException(&quot;Error retrieving client with account and authentication&quot;, e);</span>
+<span class="nc" id="L219">        }</span>
+<span class="nc" id="L220">        return null;</span>
+    }
+
+    public boolean updateUserAndAccount(Client client, Compte compte, String user, String newPassword) throws SQLException {
+<span class="fc" id="L224">        String updateClientSql = &quot;UPDATE Client SET nom = ?, prenom = ?, email = ?, tel = ? WHERE clientId = ?&quot;;</span>
+<span class="fc" id="L225">        String updateCompteSql = &quot;UPDATE Compte SET solde = ?, dateCreation = ?, statut = ? WHERE clientId = ?&quot;;</span>
+<span class="fc" id="L226">        String updateAuthSql = &quot;UPDATE Authentification SET motDePasse = ?, nom = ? WHERE clientId = ?&quot;;</span>
+
+<span class="fc" id="L228">        try (PreparedStatement clientStmt = con.prepareStatement(updateClientSql); PreparedStatement compteStmt = con.prepareStatement(updateCompteSql); PreparedStatement authStmt = con.prepareStatement(updateAuthSql)) {</span>
+
+            // Update Client
+<span class="fc" id="L231">            clientStmt.setString(1, client.getNom());</span>
+<span class="fc" id="L232">            clientStmt.setString(2, client.getPrenom());</span>
+<span class="fc" id="L233">            clientStmt.setString(3, client.getEmail());</span>
+<span class="fc" id="L234">            clientStmt.setString(4, client.getTel());</span>
+<span class="fc" id="L235">            clientStmt.setInt(5, client.getClientId());</span>
+<span class="fc" id="L236">            int clientRowsAffected = clientStmt.executeUpdate();</span>
+
+            // Update Compte
+<span class="fc" id="L239">            compteStmt.setBigDecimal(1, compte.getSolde());</span>
+<span class="fc" id="L240">            compteStmt.setDate(2, compte.getDateCreation());</span>
+<span class="fc" id="L241">            compteStmt.setString(3, compte.getStatut());</span>
+<span class="fc" id="L242">            compteStmt.setInt(4, compte.getClientId());</span>
+<span class="fc" id="L243">            int compteRowsAffected = compteStmt.executeUpdate();</span>
+
+            // Update Authentification
+<span class="fc" id="L246">            authStmt.setString(1, newPassword);</span>
+<span class="fc" id="L247">            authStmt.setString(2, user);</span>
+<span class="fc" id="L248">            authStmt.setInt(3, client.getClientId());</span>
+<span class="fc" id="L249">            int authRowsAffected = authStmt.executeUpdate();</span>
+
+            // Check if all updates were successful
+<span class="pc bpc" id="L252" title="3 of 6 branches missed.">            if (clientRowsAffected &gt; 0 &amp;&amp; compteRowsAffected &gt; 0 &amp;&amp; authRowsAffected &gt; 0) {</span>
+                // Commit the transaction if all updates succeeded
+<span class="fc" id="L254">                con.commit();</span>
+<span class="fc" id="L255">                return true;</span>
+            } else {
+                // Rollback the transaction if any update failed
+<span class="nc" id="L258">                con.rollback();</span>
+<span class="nc" id="L259">                return false;</span>
+            }
+
+<span class="pc bpc" id="L262" title="3 of 6 branches missed.">        } catch (SQLException e) {</span>
+            // Rollback if any exception occurs
+<span class="nc" id="L264">            con.rollback();</span>
+<span class="nc" id="L265">            throw new SQLException(&quot;Error updating user and account data&quot;, e);</span>
+        } finally {
+            // Reset auto-commit to true after the transaction is completed
+<span class="fc" id="L268">            con.setAutoCommit(true);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

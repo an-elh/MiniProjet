@@ -1,0 +1,13 @@
+com\mycompany\miniprojet\testDao\AuthentificationDAOTest$DatabaseOperationTests.class
+com\mycompany\miniprojet\testController\ClientControllerTest.class
+com\mycompany\miniprojet\testEntite\CompteTest.class
+com\mycompany\miniprojet\testEntite\AuthentificationsTest.class
+com\mycompany\miniprojet\testController\CompteControllerTest.class
+com\mycompany\miniprojet\testEntite\ClientTest.class
+com\mycompany\miniprojet\testController\AuthentificationControllerTest.class
+com\mycompany\miniprojet\testDao\ClientDAOTest.class
+com\mycompany\miniprojet\testDao\CompteDAOTest.class
+com\mycompany\miniprojet\testEntite\TransactionTest.class
+com\mycompany\miniprojet\testController\TransactionControllerTest.class
+com\mycompany\miniprojet\testDao\AuthentificationDAOTest.class
+com\mycompany\miniprojet\testDao\TransactionDAOTest.class

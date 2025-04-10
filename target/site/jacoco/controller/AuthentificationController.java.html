@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthentificationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">AuthentificationController.java</span></div><h1>AuthentificationController.java</h1><pre class="source lang-java linenums">package controller;
+
+import java.sql.SQLException;
+
+import dao.AuthentificationDAO;
+import dao.ClientDAO;
+import entite.Authentification;
+import entite.Client;
+
+public class AuthentificationController {
+
+    public AuthentificationDAO authDAO;
+    public ClientDAO clientDAO;
+
+<span class="fc" id="L15">    public AuthentificationController() {</span>
+<span class="fc" id="L16">        authDAO = new AuthentificationDAO();</span>
+<span class="fc" id="L17">        clientDAO = new ClientDAO();</span>
+<span class="fc" id="L18">    }</span>
+
+    // Method to authenticate a user and return the Client object
+    public Client loginAndGetClient(String nom, String motDePasse) {
+        try {
+<span class="fc" id="L23">            String[] result = authDAO.seConnecter(nom, motDePasse);</span>
+<span class="pc bpc" id="L24" title="2 of 4 branches missed.">            if (result != null &amp;&amp; result.length &gt; 0) {</span>
+<span class="fc" id="L25">                int clientId = Integer.parseInt(result[0]); // Extract client ID from the result</span>
+<span class="fc" id="L26">                return clientDAO.getClientById(clientId);</span>
+            }
+<span class="fc" id="L28">        } catch (SQLException e) {</span>
+            // Log the exception
+<span class="fc" id="L30">            System.err.println(&quot;SQL Exception during login: &quot; + e.getMessage());</span>
+<span class="nc" id="L31">        } catch (NumberFormatException e) {</span>
+            // Log the exception for invalid number format
+<span class="nc" id="L33">            System.err.println(&quot;Invalid client ID format: &quot; + e.getMessage());</span>
+<span class="pc" id="L34">        }</span>
+<span class="fc" id="L35">        return null; // Authentication failed</span>
+    }
+
+    // Method to check username and password against the stored credentials
+    public boolean authenticateUser(String nom, String motDePasse) {
+        try {
+<span class="fc" id="L41">            String storedPassword = authDAO.getPasswordByUsername(nom);</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">            if (storedPassword != null) {</span>
+<span class="fc" id="L43">                return storedPassword.equals(motDePasse);</span>
+            }
+<span class="nc" id="L45">        } catch (SQLException e) {</span>
+            // Handle exception (log it or show message to user)
+<span class="nc" id="L47">            e.printStackTrace();</span>
+<span class="nc" id="L48">        }</span>
+<span class="nc" id="L49">        return false; // Authentication failed</span>
+    }
+
+    // Method to get the client ID after successful login
+    public int loginAndGetClientId(String nom, String motDePasse) {
+        try {
+<span class="fc" id="L55">            String[] result = authDAO.seConnecter(nom, motDePasse);</span>
+<span class="pc bpc" id="L56" title="2 of 4 branches missed.">            if (result != null &amp;&amp; result.length &gt; 0) {</span>
+<span class="nc" id="L57">                return Integer.parseInt(result[0]); // Extract client ID from the result</span>
+            }
+<span class="nc" id="L59">        } catch (SQLException e) {</span>
+            // Log the exception
+<span class="nc" id="L61">            System.err.println(&quot;Error during login: &quot; + e.getMessage());</span>
+<span class="fc" id="L62">        } catch (NumberFormatException e) {</span>
+            // Log the exception for invalid number format
+<span class="fc" id="L64">            System.err.println(&quot;Invalid client ID format: &quot; + e.getMessage());</span>
+<span class="nc" id="L65">        }</span>
+<span class="fc" id="L66">        return -1; // Return failure value if an error occurs</span>
+    }
+
+    // Check if the username is unique (not already taken)
+    public boolean isUsernameUnique(String nom) {
+        try {
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            return !authDAO.doesUsernameExist(nom);</span>
+<span class="nc" id="L73">        } catch (SQLException e) {</span>
+            // Handle exception (log it or show message to user)
+<span class="nc" id="L75">            e.printStackTrace();</span>
+        }
+<span class="nc" id="L77">        return false; // If there's an error, assume the username is not unique</span>
+    }
+
+    // Method to authenticate and get role
+    public String[] loginAndGetRole(String nom, String motDePasse) {
+        try {
+<span class="fc" id="L83">            String[] result = authDAO.seConnecter(nom, motDePasse);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">            if (result != null) {</span>
+<span class="fc" id="L85">                return result; // Returns [clientId, role]</span>
+            }
+<span class="nc" id="L87">        } catch (SQLException e) {</span>
+<span class="nc" id="L88">            e.printStackTrace();</span>
+<span class="nc" id="L89">        }</span>
+<span class="nc" id="L90">        return null;</span>
+    }
+
+    // Method to check if user is admin
+    public boolean isAdmin(String nom) {
+        try {
+<span class="fc" id="L96">            String role = authDAO.getRole(nom);</span>
+<span class="fc" id="L97">            return &quot;admin&quot;.equals(role);</span>
+<span class="nc" id="L98">        } catch (SQLException e) {</span>
+<span class="nc" id="L99">            e.printStackTrace();</span>
+<span class="nc" id="L100">            return false;</span>
+        }
+    }
+
+    // Method to get user's role
+    public String getUserRole(String nom) {
+        try {
+<span class="nc" id="L107">            return authDAO.getRole(nom);</span>
+<span class="fc" id="L108">        } catch (SQLException e) {</span>
+<span class="fc" id="L109">            e.printStackTrace();</span>
+<span class="fc" id="L110">            return &quot;user&quot;; // Default to user role on error</span>
+        }
+    }
+
+    public Authentification getAuthentification(int clientId) {
+        try {
+<span class="fc" id="L116">            System.out.println(&quot;Authentification :&quot; + authDAO.getAuthentificationById(clientId));</span>
+<span class="fc" id="L117">            return authDAO.getAuthentificationById(clientId);</span>
+<span class="fc" id="L118">        } catch (Exception e) {</span>
+<span class="fc" id="L119">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransactionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mini-projet</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">TransactionController.java</span></div><h1>TransactionController.java</h1><pre class="source lang-java linenums">package controller;
+
+import dao.TransactionDAO;
+import entite.Transaction;
+import java.math.BigDecimal;
+import java.util.List;
+import java.sql.SQLException;
+
+public class TransactionController {
+
+    public TransactionDAO transactionDAO;
+
+    // Constructor to initialize the DAO
+<span class="fc" id="L14">    public TransactionController() {</span>
+<span class="fc" id="L15">        this.transactionDAO = new TransactionDAO();</span>
+<span class="fc" id="L16">    }</span>
+
+    // Method to create a new transaction
+    public boolean createTransaction(String type, BigDecimal montant, java.util.Date dateTransaction, String numCompte) {
+        // Create a new transaction object
+<span class="fc" id="L21">        Transaction transaction = new Transaction(type, montant, dateTransaction, numCompte);</span>
+        
+        try {
+            // Call the DAO method to insert the transaction into the database
+<span class="fc" id="L25">            return transactionDAO.createTransaction(transaction);</span>
+<span class="fc" id="L26">        } catch (SQLException e) {</span>
+            // Handle the exception (log it or show an error message)
+<span class="fc" id="L28">            e.printStackTrace();</span>
+<span class="fc" id="L29">            return false; // You can return false to indicate failure</span>
+        }
+    }
+
+    // Method to get all transactions for a given account
+    public List&lt;Transaction&gt; getTransactions(String numCompte) {
+        try {
+            // Retrieve transactions from the DAO
+<span class="fc" id="L37">            return transactionDAO.getTransactions(numCompte);</span>
+<span class="fc" id="L38">        } catch (SQLException e) {</span>
+            // Handle the exception (log it or show an error message)
+<span class="fc" id="L40">            e.printStackTrace();</span>
+<span class="fc" id="L41">            return null; // Return null if there's an error retrieving transactions</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

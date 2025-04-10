@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.mycompany.miniprojet.testController.AuthentificationControllerTest
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.611 s -- in com.mycompany.miniprojet.testController.AuthentificationControllerTest
